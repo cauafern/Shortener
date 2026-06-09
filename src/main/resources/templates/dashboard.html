@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Encurtador</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; min-height: 100vh; background: #0d1526; color: #e2e8f0; }
+        .navbar { background: rgba(13,21,38,0.95); border-bottom: 1px solid rgba(59,130,246,0.15); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); }
+        .logo { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+        .logo span { color: #3b82f6; }
+        .nav-btn { background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: none; transition: all 0.2s; }
+        .nav-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(59,130,246,0.4); }
+        .hero { background: linear-gradient(160deg, #1a2744 0%, #0d1526 60%); border-bottom: 1px solid rgba(59,130,246,0.1); padding: 3rem 2rem 2.5rem; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%); top: -100px; right: 5%; pointer-events: none; }
+        .hero-content { max-width: 1100px; margin: 0 auto; }
+        .hero h1 { font-size: 2.2rem; font-weight: 800; color: #fff; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+        .hero h1 span { background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { color: #64748b; font-size: 15px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; max-width: 1100px; margin: 2rem auto 0; }
+        .stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(59,130,246,0.15); border-radius: 14px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        .stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .stat-icon.blue { background: rgba(59,130,246,0.15); }
+        .stat-icon.green { background: rgba(16,185,129,0.15); }
+        .stat-icon.purple { background: rgba(139,92,246,0.15); }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; line-height: 1; }
+        .stat-label { font-size: 13px; color: #64748b; margin-top: 3px; font-weight: 500; }
+        .main { max-width: 1100px; margin: 2rem auto; padding: 0 2rem 4rem; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+        .section-title { font-size: 16px; font-weight: 700; color: #fff; }
+        .section-subtitle { font-size: 13px; color: #475569; margin-top: 2px; }
+        .table-wrapper { background: linear-gradient(160deg, #1a2744, #131f38); border: 1px solid rgba(59,130,246,0.15); border-radius: 18px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: rgba(59,130,246,0.08); border-bottom: 1px solid rgba(59,130,246,0.15); }
+        th { padding: 14px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(59,130,246,0.05); }
+        td { padding: 16px 20px; font-size: 14px; color: #cbd5e1; vertical-align: middle; }
+        .code-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: monospace; }
+        .original-url { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #94a3b8; font-size: 13px; display: block; }
+        .clicks-badge { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: #fff; font-size: 14px; }
+        .clicks-badge::before { content: '↗'; color: #10b981; font-size: 12px; }
+        .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 600; }
+        .status-badge.active { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+        .status-badge.inactive { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .date-text { color: #475569; font-size: 12px; }
+        .actions { display: flex; gap: 8px; }
+        .btn-action { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+        .btn-disable { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .btn-disable:hover { background: rgba(245,158,11,0.25); }
+        .btn-delete { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .btn-delete:hover { background: rgba(239,68,68,0.25); }
+        .empty-state { text-align: center; padding: 4rem 2rem; }
+        .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+        .empty-title { font-size: 18px; font-weight: 700; color: #475569; margin-bottom: 0.5rem; }
+        .empty-text { font-size: 14px; color: #334155; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">Encurta<span>rápido</span></div>
+    <a href="/" class="nav-btn">+ Novo link</a>
+</nav>
+
+<div class="hero">
+    <div class="hero-content">
+        <h1>Seus <span>links</span></h1>
+        <p>Gerencie e acompanhe todos os links que você criou.</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">🔗</div>
+                <div>
+                    <div class="stat-number" th:text="${urls != null ? urls.size() : 0}">0</div>
+                    <div class="stat-label">Links criados</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">👆</div>
+                <div>
+                    <div class="stat-number" th:text="${totalCliques}">0</div>
+                    <div class="stat-label">Total de cliques</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">✅</div>
+                <div>
+                    <div class="stat-number" th:text="${totalAtivos}">0</div>
+                    <div class="stat-label">Links ativos</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="section-header">
+        <div>
+            <div class="section-title">Todos os links</div>
+            <div class="section-subtitle">Clique em copiar para compartilhar</div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>Código</th>
+                <th>URL Original</th>
+                <th>Cliques</th>
+                <th>Status</th>
+                <th>Criado em</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${urls == null or #lists.isEmpty(urls)}">
+                <td colspan="6">
+                    <div class="empty-state">
+                        <div class="empty-icon">🔗</div>
+                        <div class="empty-title">Nenhum link criado ainda</div>
+                        <div class="empty-text">Clique em "Novo link" para começar</div>
+                    </div>
+                </td>
+            </tr>
+            <tr th:each="url : ${urls}">
+                <td><span class="code-badge" th:text="${url.code}">codigo</span></td>
+                <td><span class="original-url" th:text="${url.originalUrl}" th:title="${url.originalUrl}">https://exemplo.com</span></td>
+                <td><span class="clicks-badge" th:text="${url.clicks}">0</span></td>
+                <td>
+                        <span class="status-badge active" th:if="${url.active}">
+                            <span class="status-dot"></span> Ativo
+                        </span>
+                    <span class="status-badge inactive" th:unless="${url.active}">
+                            <span class="status-dot"></span> Inativo
+                        </span>
+                </td>
+                <td>
+                    <span class="date-text" th:text="${#temporals.format(url.createdIn, 'dd/MM/yyyy HH:mm')}">01/01/2025</span>
+                </td>
+                <td>
+                    <div class="actions">
+                        <form th:action="@{/url/disable/{id}(id=${url.id})}" method="post" style="display:inline">
+                            <button type="submit" class="btn-action btn-disable">Desativar</button>
+                        </form>
+                        <form th:action="@{/url/delete/{id}(id=${url.id})}" method="post" style="display:inline">
+                            <button type="submit" class="btn-action btn-delete">Deletar</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
