@@ -5,6 +5,7 @@ import com.web.shortener.exception.CodeExpiredException;
 import com.web.shortener.exception.CodeNotFoundException;
 import com.web.shortener.exception.LinkDisabledException;
 import com.web.shortener.model.Url;
+import com.web.shortener.model.User;
 import com.web.shortener.repository.UrlRepository;
 import com.web.shortener.util.GeneratorCode;
 import jakarta.transaction.Transactional;
@@ -22,11 +23,12 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class UrlService {
 
+    private final UserService userService;
 
     private final UrlRepository urlRepository;
 
-   // private static final String URL_REGEX = "^(https?://)([\\w\\-]+\\.)+[\\w\\-]+(:[0-9]+)?(/.*)?$";
-   // private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
+    // private static final String URL_REGEX = "^(https?://)([\\w\\-]+\\.)+[\\w\\-]+(:[0-9]+)?(/.*)?$";
+    // private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
 
     @Transactional
     public Url shortener(String originalUrl) {
@@ -36,12 +38,15 @@ public class UrlService {
             code = GeneratorCode.generateCode(6);
         } while (urlRepository.existsByCode(code));
 
+        User loggedUser = userService.searchLoggedInUser();
+
         Url url = Url.builder().
                 clicks(0L).
                 createdIn(LocalDateTime.now()).
                 code(code).
                 originalUrl(originalUrl).
                 active(true).
+                user(loggedUser).
                 build();
 
         return urlRepository.save(url);
@@ -58,13 +63,12 @@ public class UrlService {
             throw new IllegalArgumentException("Code cannot be empty");
         }
 
-//        if (!URL_PATTERN.matcher(originalUrl).matches()) {
-//            throw new InvalidUrlException("Invalid Url");
-//        }
 
         if (urlRepository.existsByCode(code)) {
             throw new CodeAlreadyExistsException("Code already exists");
         }
+
+        User loggedUser = userService.searchLoggedInUser();
 
         final Url url = Url.builder().
                 code(code).
@@ -72,6 +76,7 @@ public class UrlService {
                 active(true).
                 clicks(0L).
                 createdIn(LocalDateTime.now()).
+                user(loggedUser).
                 build();
 
         return urlRepository.save(url);
@@ -114,11 +119,9 @@ public class UrlService {
         urlRepository.save(url);
     }
 
-//    private void validateUrl(String originalUrl) {
-//        if (originalUrl == null || !URL_PATTERN.matcher(originalUrl).matches()) {
-//            throw new InvalidUrlException("Invalid Url");
-//        }
-//    }
+    public List<Url> listByUser(User user) {
+        return urlRepository.findByUser(user);
+    }
 
     public void deleteById(Long id) {
         urlRepository.deleteById(id);

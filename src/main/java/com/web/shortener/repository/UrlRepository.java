@@ -1,6 +1,7 @@
 package com.web.shortener.repository;
 
 import com.web.shortener.model.Url;
+import com.web.shortener.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -20,4 +21,6 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
 
     // Search for expired links
     List<Url> findByExpiredInBefore(LocalDateTime date);
+
+    List<Url> findByUser(User user);
 }

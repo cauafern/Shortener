@@ -1,7 +1,9 @@
 package com.web.shortener.controller;
 
 import com.web.shortener.model.Url;
+import com.web.shortener.model.User;
 import com.web.shortener.service.UrlService;
+import com.web.shortener.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +18,8 @@ import java.util.List;
 public class HomeController {
 
     private UrlService urlService;
+
+    private UserService userService;
 
     @PostMapping("/shortener")
     public String shortener(@RequestParam String originalUrl, @RequestParam(required = false) String code, Model model) {
@@ -38,7 +42,9 @@ public class HomeController {
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        List<Url> urls = urlService.listAll();
+        User user = userService.searchLoggedInUser();
+
+        List<Url> urls = urlService.listByUser(user);
 
         long totalCliques = urls.stream().mapToLong(Url::getClicks).sum();
         long totalAtivos = urls.stream().filter(Url::getActive).count();
